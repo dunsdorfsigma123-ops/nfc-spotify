@@ -305,6 +305,7 @@ async function startLogin(){
     code_challenge_method: "S256",
     code_challenge: challenge,
     scope: CONFIG.SCOPES,
+    show_dialog: "true",
   });
   window.location.href = "https://accounts.spotify.com/authorize?" + params.toString();
 }
@@ -475,4 +476,3 @@ run();
 </script>
 </body>
 </html>
-
