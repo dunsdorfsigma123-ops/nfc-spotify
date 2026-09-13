@@ -1,4 +1,3 @@
-html
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -89,6 +88,7 @@ html
   }
   .btn.secondary:hover{background:#222;}
 
+  /* spinning disc while checking */
   .spinner{
     width:56px;height:56px;
     border-radius:50%;
@@ -135,6 +135,7 @@ html
 
 <div class="card">
 
+  <!-- Ersteinrichtung: Verbindung mit Spotify -->
   <div id="view-connect" class="hidden">
     <div class="art">
       <svg width="64" height="64" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#1ED760" stroke-width="1.6"/><path d="M7 10.2c3-1 7-.6 9.4.9M7.3 13c2.4-.7 5.6-.4 7.6.8M7.6 15.7c2-.5 4.4-.3 6 .6" stroke="#1ED760" stroke-width="1.4" stroke-linecap="round"/></svg>
@@ -144,12 +145,14 @@ html
     <button class="btn" id="btn-connect">Mit Spotify verbinden</button>
   </div>
 
+  <!-- Suche nach aktuellem Song -->
   <div id="view-loading" class="hidden">
     <div class="status-icon"><div class="spinner"></div></div>
     <h1 id="loading-text">Song wird gesucht …</h1>
     <p class="sub">Einen Moment.</p>
   </div>
 
+  <!-- Erfolgreich gemerkt -->
   <div id="view-success" class="hidden">
     <div class="art"><img id="art-img" src="" alt=""></div>
     <p class="track-name" id="track-name"></p>
@@ -157,6 +160,7 @@ html
     <p class="sub" style="margin-top:18px;color:var(--green);font-weight:600;">✓ Zu deinen Songs hinzugefügt</p>
   </div>
 
+  <!-- Gerade läuft nichts -->
   <div id="view-idle" class="hidden">
     <div class="status-icon">
       <svg width="40" height="40" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#a7a7a7" stroke-width="1.6"/><path d="M9 9l6 6M15 9l-6 6" stroke="#a7a7a7" stroke-width="1.6" stroke-linecap="round"/></svg>
@@ -165,6 +169,7 @@ html
     <p class="sub">Starte einen Song auf Spotify und scanne den Tag erneut.</p>
   </div>
 
+  <!-- Fehler -->
   <div id="view-error" class="hidden">
     <div class="status-icon">
       <svg width="40" height="40" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#f15e6c" stroke-width="1.6"/><path d="M12 7v6M12 16.5v.01" stroke="#f15e6c" stroke-width="1.8" stroke-linecap="round"/></svg>
@@ -179,8 +184,14 @@ html
 </div>
 
 <script>
+/* ============================================================
+   KONFIGURATION – hier deine eigenen Werte eintragen
+   ============================================================ */
 const CONFIG = {
+  // Client-ID deiner eigenen Spotify-App (developer.spotify.com/dashboard)
   CLIENT_ID: "14b7419da08d44cd8c9dfa7866ade602",
+  // Muss exakt der URL entsprechen, unter der diese Datei gehostet wird,
+  // UND exakt so im Spotify-Dashboard als Redirect-URI eingetragen sein.
   REDIRECT_URI: window.location.origin + window.location.pathname,
   SCOPES: "user-read-currently-playing user-library-modify",
 };
@@ -188,6 +199,7 @@ const CONFIG = {
 const STORAGE_KEY_REFRESH = "sp_refresh_token";
 const STORAGE_KEY_VERIFIER = "sp_code_verifier";
 
+/* ---------- kleine Helfer ---------- */
 function show(id){
   ["view-connect","view-loading","view-success","view-idle","view-error"]
     .forEach(v => document.getElementById(v).classList.toggle("hidden", v !== id));
@@ -209,6 +221,7 @@ async function sha256(plain){
   return await crypto.subtle.digest("SHA-256", data);
 }
 
+/* ---------- Schritt 1: Login starten (nur beim allerersten Mal) ---------- */
 async function startLogin(){
   const verifier = randomVerifier();
   localStorage.setItem(STORAGE_KEY_VERIFIER, verifier);
@@ -225,6 +238,7 @@ async function startLogin(){
   window.location.href = "https://accounts.spotify.com/authorize?" + params.toString();
 }
 
+/* ---------- Schritt 2: Code aus der URL gegen Tokens tauschen ---------- */
 async function exchangeCodeForTokens(code){
   const verifier = localStorage.getItem(STORAGE_KEY_VERIFIER);
   const body = new URLSearchParams({
@@ -251,6 +265,7 @@ async function exchangeCodeForTokens(code){
   return data.access_token;
 }
 
+/* ---------- Schritt 3: bei jedem Scan frischen Access-Token holen ---------- */
 async function refreshAccessToken(){
   const refreshToken = localStorage.getItem(STORAGE_KEY_REFRESH);
   const body = new URLSearchParams({
@@ -276,6 +291,7 @@ async function refreshAccessToken(){
   return data.access_token;
 }
 
+/* ---------- Schritt 4: aktuellen Song holen und speichern ---------- */
 async function addCurrentTrack(accessToken){
   const nowPlayingRes = await fetch("https://api.spotify.com/v1/me/player/currently-playing", {
     headers: { Authorization: "Bearer " + accessToken },
@@ -300,7 +316,7 @@ async function addCurrentTrack(accessToken){
 
   const track = data.item;
   const saveRes = await fetch(
-    "https://api.spotify.com/v1/me/tracks?ids=" + encodeURIComponent(track.id),
+    "https://api.spotify.com/v1/me/library?uris=" + encodeURIComponent("spotify:track:" + track.id),
     {
       method: "PUT",
       headers: { Authorization: "Bearer " + accessToken },
@@ -320,6 +336,7 @@ async function addCurrentTrack(accessToken){
   show("view-success");
 }
 
+/* ---------- Fehleranzeige ---------- */
 function showError(title, text, detail){
   document.getElementById("error-title").textContent = title;
   document.getElementById("error-text").textContent = text;
@@ -327,10 +344,20 @@ function showError(title, text, detail){
   show("view-error");
 }
 
+/* ---------- Ablaufsteuerung ---------- */
 async function run(){
   show("view-loading");
 
   const urlParams = new URLSearchParams(window.location.search);
+
+  if(urlParams.get("reset") === "1"){
+    localStorage.removeItem(STORAGE_KEY_REFRESH);
+    localStorage.removeItem(STORAGE_KEY_VERIFIER);
+    history.replaceState({}, "", CONFIG.REDIRECT_URI);
+    show("view-connect");
+    return;
+  }
+
   const code = urlParams.get("code");
   const authError = urlParams.get("error");
 
@@ -343,11 +370,15 @@ async function run(){
     let accessToken;
 
     if(code){
+      // Rückkehr von der Spotify-Login-Seite
       accessToken = await exchangeCodeForTokens(code);
+      // URL wieder aufräumen, damit der Code nicht erneut verwendet wird
       history.replaceState({}, "", CONFIG.REDIRECT_URI);
     } else if(localStorage.getItem(STORAGE_KEY_REFRESH)){
+      // Normaler Scan – wir sind schon verbunden
       accessToken = await refreshAccessToken();
     } else {
+      // Allererster Scan
       show("view-connect");
       return;
     }
