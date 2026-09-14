@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Song merken</title>
+<style>
+  :root{
+    --bg:#0a0a0a;
+    --surface:#151515;
+    --groove-a:#1c1c1c;
+    --groove-b:#111111;
+    --green:#1ED760;
+    --text:#ffffff;
+    --text-dim:#8a8a8a;
+    --error:#FF5470;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+    padding:32px 24px;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .card{
+    width:100%;
+    max-width:340px;
+    text-align:center;
+  }
+
+  /* ---------- Vinyl-Motiv, in jedem Zustand wiederverwendet ---------- */
+  .disc-wrap{
+    position:relative;
+    width:172px;
+    height:172px;
+    margin:0 auto 32px;
+  }
+  .disc{
+    width:100%;
+    height:100%;
+    border-radius:50%;
+    background:
+      repeating-radial-gradient(circle at center,
+        var(--groove-a) 0px, var(--groove-a) 1.5px,
+        var(--groove-b) 1.5px, var(--groove-b) 5px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:
+      0 24px 48px -24px rgba(0,0,0,.7),
+      inset 0 0 0 1px rgba(255,255,255,.04);
+    transition:transform .4s ease;
+  }
+  .disc.spin{ animation:spin 2.4s linear infinite; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  .disc-label{
+    width:60px;
+    height:60px;
+    border-radius:50%;
+    background:var(--bg);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:3px solid #000;
+    transition:width .35s ease, height .35s ease;
+    overflow:hidden;
+  }
+  .disc-label.filled{
+    width:100%;
+    height:100%;
+    border:none;
+  }
+  .disc-label img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+  }
+  .disc-hole{
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:var(--bg);
+  }
+  .disc-label.filled .disc-hole{
+    position:absolute;
+    box-shadow:0 0 0 2px rgba(255,255,255,.25);
+  }
+
+  .badge{
+    position:absolute;
+    bottom:-2px;
+    right:-2px;
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:4px solid var(--bg);
+  }
+  .badge.check{ background:var(--green); }
+  .badge.idle{ background:#2a2a2a; }
+  .badge.error{ background:var(--error); }
+
+  /* ---------- Typografie ---------- */
+  h1{
+    font-size:21px;
+    font-weight:800;
+    line-height:1.3;
+    margin:0 0 8px;
+    letter-spacing:-0.02em;
+  }
+  p.sub{
+    color:var(--text-dim);
+    font-size:14.5px;
+    line-height:1.55;
+    margin:0 0 28px;
+  }
+  .track-name{font-size:18px;font-weight:800;margin:0 0 3px;letter-spacing:-0.01em;}
+  .track-artist{font-size:14px;color:var(--text-dim);margin:0 0 22px;}
+  .status-line{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:13.5px;
+    font-weight:700;
+    color:var(--green);
+  }
+
+  /* ---------- Buttons ---------- */
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    background:var(--green);
+    color:#0a0a0a;
+    border:none;
+    border-radius:100px;
+    padding:15px 28px;
+    font-size:15px;
+    font-weight:800;
+    cursor:pointer;
+    width:100%;
+    transition:transform .15s ease, background .15s ease;
+    letter-spacing:-0.01em;
+  }
+  .btn:active{transform:scale(0.96);}
+  .btn.secondary{
+    background:transparent;
+    color:var(--text-dim);
+    border:1px solid #2a2a2a;
+    font-weight:600;
+    margin-top:10px;
+  }
+  .btn.secondary:active{background:#161616;}
+
+  .hidden{display:none !important;}
+
+  @keyframes fadeIn{
+    from{opacity:0; transform:translateY(8px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+  .view-fade{animation:fadeIn .4s ease;}
+
+  .error-detail{
+    font-size:11.5px;
+    color:#555;
+    word-break:break-all;
+    margin:0 0 20px;
+    text-align:left;
+    background:var(--surface);
+    padding:12px;
+    border-radius:10px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- Ersteinrichtung -->
+  <div id="view-connect" class="hidden">
+    <div class="disc-wrap">
+      <div class="disc"><div class="disc-label"><div class="disc-hole"></div></div></div>
+    </div>
+    <h1>Einmalig verbinden</h1>
+    <p class="sub">Damit dieser Tag deinen aktuellen Song merken kann, braucht er einmalig Zugriff auf dein Spotify-Konto.</p>
+    <button class="btn" id="btn-connect">Mit Spotify verbinden</button>
+  </div>
+
+  <!-- Suche -->
+  <div id="view-loading" class="hidden">
+    <div class="disc-wrap">
+      <div class="disc spin"><div class="disc-label"><div class="disc-hole"></div></div></div>
+    </div>
+    <h1>Song wird gesucht</h1>
+    <p class="sub">Einen Moment …</p>
+  </div>
+
+  <!-- Erfolg -->
+  <div id="view-success" class="hidden">
+    <div class="disc-wrap">
+      <div class="disc">
+        <div class="disc-label filled"><img id="art-img" src="" alt=""><div class="disc-hole"></div></div>
+      </div>
+      <div class="badge check">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#0a0a0a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+    <p class="track-name" id="track-name"></p>
+    <p class="track-artist" id="track-artist"></p>
+    <div class="status-line">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Zu deinen Songs hinzugefügt
+    </div>
+  </div>
+
+  <!-- Nichts läuft -->
+  <div id="view-idle" class="hidden">
+    <div class="disc-wrap">
+      <div class="disc"><div class="disc-label"><div class="disc-hole"></div></div></div>
+      <div class="badge idle">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 9l6 6M15 9l-6 6" stroke="#8a8a8a" stroke-width="2.2" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+    <h1>Gerade läuft kein Song</h1>
+    <p class="sub">Starte einen Song auf Spotify und scanne den Tag erneut.</p>
+  </div>
+
+  <!-- Fehler -->
+  <div id="view-error" class="hidden">
+    <div class="disc-wrap">
+      <div class="disc"><div class="disc-label"><div class="disc-hole"></div></div></div>
+      <div class="badge error">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 8v5M12 16.5v.01" stroke="#0a0a0a" stroke-width="2.6" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+    <h1 id="error-title">Etwas ist schiefgelaufen</h1>
+    <p class="sub" id="error-text">Bitte versuch es noch einmal.</p>
+    <p class="error-detail" id="error-detail"></p>
+    <button class="btn secondary" id="btn-retry">Erneut versuchen</button>
+    <button class="btn secondary" id="btn-hard-reset">Verbindung zurücksetzen</button>
+  </div>
+
+</div>
+
+<script>
+const CONFIG = {
+  CLIENT_ID: "DEINE_SPOTIFY_CLIENT_ID",
+  REDIRECT_URI: window.location.origin + window.location.pathname,
+  SCOPES: "user-read-currently-playing user-library-modify",
+};
+
+const STORAGE_KEY_REFRESH = "sp_refresh_token";
+const STORAGE_KEY_VERIFIER = "sp_code_verifier";
+
+function show(id){
+  ["view-connect","view-loading","view-success","view-idle","view-error"]
+    .forEach(v => {
+      const el = document.getElementById(v);
+      el.classList.toggle("hidden", v !== id);
+      if(v === id){
+        el.classList.remove("view-fade");
+        void el.offsetWidth; // Animation neu starten
+        el.classList.add("view-fade");
+      }
+    });
+}
+
+function base64url(buffer){
+  return btoa(String.fromCharCode(...new Uint8Array(buffer)))
+    .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function randomVerifier(length = 64){
+  const arr = new Uint8Array(length);
+  crypto.getRandomValues(arr);
+  return base64url(arr.buffer).slice(0, length);
+}
+
+async function sha256(plain){
+  const data = new TextEncoder().encode(plain);
+  return await crypto.subtle.digest("SHA-256", data);
+}
+
+async function startLogin(){
+  const verifier = randomVerifier();
+  localStorage.setItem(STORAGE_KEY_VERIFIER, verifier);
+  const challenge = base64url(await sha256(verifier));
+
+  const params = new URLSearchParams({
+    client_id: CONFIG.CLIENT_ID,
+    response_type: "code",
+    redirect_uri: CONFIG.REDIRECT_URI,
+    code_challenge_method: "S256",
+    code_challenge: challenge,
+    scope: CONFIG.SCOPES,
+    show_dialog: "true",
+  });
+  window.location.href = "https://accounts.spotify.com/authorize?" + params.toString();
+}
+
+async function exchangeCodeForTokens(code){
+  const verifier = localStorage.getItem(STORAGE_KEY_VERIFIER);
+  const body = new URLSearchParams({
+    client_id: CONFIG.CLIENT_ID,
+    grant_type: "authorization_code",
+    code,
+    redirect_uri: CONFIG.REDIRECT_URI,
+    code_verifier: verifier,
+  });
+  const res = await fetch("https://accounts.spotify.com/api/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body,
+  });
+  if(!res.ok){
+    const errBody = await res.text();
+    const e = new Error("token_exchange_failed");
+    e.detail = "Token-Austausch (Status " + res.status + "): " + errBody;
+    e.hasVerifier = !!verifier;
+    throw e;
+  }
+  const data = await res.json();
+  localStorage.setItem(STORAGE_KEY_REFRESH, data.refresh_token);
+  return data.access_token;
+}
+
+async function refreshAccessToken(){
+  const refreshToken = localStorage.getItem(STORAGE_KEY_REFRESH);
+  const body = new URLSearchParams({
+    client_id: CONFIG.CLIENT_ID,
+    grant_type: "refresh_token",
+    refresh_token: refreshToken,
+  });
+  const res = await fetch("https://accounts.spotify.com/api/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body,
+  });
+  if(!res.ok){
+    const errBody = await res.text();
+    const e = new Error("refresh_failed");
+    e.detail = "Token-Refresh (Status " + res.status + "): " + errBody;
+    throw e;
+  }
+  const data = await res.json();
+  if(data.refresh_token){
+    localStorage.setItem(STORAGE_KEY_REFRESH, data.refresh_token);
+  }
+  return data.access_token;
+}
+
+async function addCurrentTrack(accessToken){
+  const nowPlayingRes = await fetch("https://api.spotify.com/v1/me/player/currently-playing", {
+    headers: { Authorization: "Bearer " + accessToken },
+  });
+
+  if(nowPlayingRes.status === 204){
+    show("view-idle");
+    return;
+  }
+  if(!nowPlayingRes.ok){
+    const errBody = await nowPlayingRes.text();
+    const e = new Error("now_playing_failed");
+    e.detail = "Aktueller Song abrufen (Status " + nowPlayingRes.status + "): " + errBody;
+    throw e;
+  }
+
+  const data = await nowPlayingRes.json();
+  if(!data.item || data.item.type !== "track"){
+    show("view-idle");
+    return;
+  }
+
+  const track = data.item;
+  const saveRes = await fetch(
+    "https://api.spotify.com/v1/me/library?uris=" + encodeURIComponent("spotify:track:" + track.id),
+    {
+      method: "PUT",
+      headers: { Authorization: "Bearer " + accessToken },
+    }
+  );
+  if(!saveRes.ok){
+    const errBody = await saveRes.text();
+    const e = new Error("save_failed");
+    e.detail = "Song speichern (Status " + saveRes.status + "): " + errBody;
+    throw e;
+  }
+
+  document.getElementById("track-name").textContent = track.name;
+  document.getElementById("track-artist").textContent = track.artists.map(a => a.name).join(", ");
+  const art = track.album && track.album.images && track.album.images[0];
+  document.getElementById("art-img").src = art ? art.url : "";
+  show("view-success");
+}
+
+function showError(title, text, detail){
+  document.getElementById("error-title").textContent = title;
+  document.getElementById("error-text").textContent = text;
+  document.getElementById("error-detail").textContent = detail || "";
+  show("view-error");
+}
+
+async function run(){
+  show("view-loading");
+
+  const urlParams = new URLSearchParams(window.location.search);
+
+  if(urlParams.get("reset") === "1"){
+    localStorage.removeItem(STORAGE_KEY_REFRESH);
+    localStorage.removeItem(STORAGE_KEY_VERIFIER);
+    history.replaceState({}, "", CONFIG.REDIRECT_URI);
+    show("view-connect");
+    return;
+  }
+
+  const code = urlParams.get("code");
+  const authError = urlParams.get("error");
+
+  if(authError){
+    showError("Verbindung abgelehnt", "Die Verbindung mit Spotify wurde nicht bestätigt.");
+    return;
+  }
+
+  try{
+    let accessToken;
+
+    if(code){
+      accessToken = await exchangeCodeForTokens(code);
+      history.replaceState({}, "", CONFIG.REDIRECT_URI);
+    } else if(localStorage.getItem(STORAGE_KEY_REFRESH)){
+      accessToken = await refreshAccessToken();
+    } else {
+      show("view-connect");
+      return;
+    }
+
+    await addCurrentTrack(accessToken);
+
+  } catch(err){
+    console.error(err);
+    if(err.message === "refresh_failed"){
+      localStorage.removeItem(STORAGE_KEY_REFRESH);
+      showError("Verbindung abgelaufen", "Bitte neu mit Spotify verbinden.", err.detail);
+    } else {
+      let detail = err.detail || err.message || String(err);
+      if(err.message === "token_exchange_failed" && err.hasVerifier === false){
+        detail = "Kein code_verifier im Speicher gefunden (localStorage). " + detail;
+      }
+      showError("Etwas ist schiefgelaufen", "Technisches Detail unten, bitte einen Screenshot davon schicken.", detail);
+    }
+  }
+}
+
+document.getElementById("btn-connect").addEventListener("click", startLogin);
+document.getElementById("btn-retry").addEventListener("click", run);
+document.getElementById("btn-hard-reset").addEventListener("click", () => {
+  localStorage.removeItem(STORAGE_KEY_REFRESH);
+  localStorage.removeItem(STORAGE_KEY_VERIFIER);
+  history.replaceState({}, "", CONFIG.REDIRECT_URI);
+  run();
+});
+
+run();
+</script>
+</body>
+</html>

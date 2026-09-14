@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NFC Spotify-Tag – Einrichtungsanleitung</title>
+<style>
+  :root{
+    --bg:#0a0a0a;
+    --surface:#141414;
+    --surface-2:#1c1c1c;
+    --green:#1ED760;
+    --text:#f2f2f2;
+    --text-dim:#9a9a9a;
+    --border:#262626;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    line-height:1.6;
+  }
+  .wrap{
+    max-width:680px;
+    margin:0 auto;
+    padding:56px 24px 100px;
+  }
+  .kicker{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    color:var(--green);
+    font-size:13px;
+    font-weight:700;
+    margin-bottom:18px;
+  }
+  h1{
+    font-size:clamp(28px,6vw,40px);
+    font-weight:800;
+    letter-spacing:-0.02em;
+    line-height:1.15;
+    margin:0 0 16px;
+  }
+  .lede{
+    font-size:17px;
+    color:var(--text-dim);
+    max-width:52ch;
+    margin:0 0 40px;
+  }
+  .req-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+    margin-bottom:48px;
+  }
+  .req{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:14px 16px;
+    font-size:13.5px;
+    color:var(--text-dim);
+  }
+  .req strong{display:block;color:var(--text);font-size:14.5px;margin-bottom:2px;}
+  section{
+    margin-bottom:52px;
+    scroll-margin-top:24px;
+  }
+  .step-num{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:30px;height:30px;
+    border-radius:50%;
+    background:var(--green);
+    color:#0a0a0a;
+    font-weight:800;
+    font-size:14px;
+    margin-right:10px;
+    flex-shrink:0;
+  }
+  h2{
+    display:flex;
+    align-items:center;
+    font-size:20px;
+    font-weight:800;
+    letter-spacing:-0.01em;
+    margin:0 0 14px;
+  }
+  h2 span.txt{padding-top:2px;}
+  section p{
+    color:#d0d0d0;
+    margin:0 0 12px;
+  }
+  ol.substeps{
+    margin:0 0 14px;
+    padding-left:20px;
+    color:#d0d0d0;
+  }
+  ol.substeps li{margin-bottom:8px;}
+  code{
+    font-family:var(--mono);
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:2px 7px;
+    font-size:13.5px;
+    color:#dfe;
+    word-break:break-all;
+  }
+  .note{
+    background:var(--surface);
+    border-left:3px solid var(--green);
+    border-radius:0 10px 10px 0;
+    padding:12px 16px;
+    font-size:14px;
+    color:#d0d0d0;
+    margin:14px 0;
+  }
+  .note.warn{border-left-color:#f5a623;}
+  .download-card{
+    background:linear-gradient(160deg,var(--surface),var(--surface-2));
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:22px 24px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+    margin:16px 0 8px;
+  }
+  .download-card .label{font-weight:700;font-size:15px;margin-bottom:3px;}
+  .download-card .sub{font-size:13px;color:var(--text-dim);}
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:var(--green);
+    color:#0a0a0a;
+    text-decoration:none;
+    border-radius:100px;
+    padding:12px 22px;
+    font-weight:800;
+    font-size:14px;
+    white-space:nowrap;
+  }
+  details{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:14px 18px;
+    margin-bottom:10px;
+  }
+  summary{
+    cursor:pointer;
+    font-weight:700;
+    font-size:14.5px;
+    list-style:none;
+  }
+  summary::-webkit-details-marker{display:none;}
+  summary::before{content:"+ ";color:var(--green);font-weight:800;}
+  details[open] summary::before{content:"– ";}
+  details p{margin:10px 0 0;font-size:14px;color:var(--text-dim);}
+  footer{
+    color:var(--text-dim);
+    font-size:13px;
+    text-align:center;
+    padding-top:20px;
+    border-top:1px solid var(--border);
+  }
+  @media (max-width:480px){
+    .req-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="kicker">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#1ED760" stroke-width="1.8"/><path d="M7 10c3-1 7-.6 9 .8M7.4 13c2.3-.7 5.4-.4 7.3.8M7.8 15.6c1.9-.5 4.2-.3 5.7.6" stroke="#1ED760" stroke-width="1.4" stroke-linecap="round"/></svg>
+    EINRICHTUNGSANLEITUNG
+  </div>
+  <h1>Dein NFC-Tag merkt sich jeden Song automatisch</h1>
+  <p class="lede">Tag scannen, aktueller Spotify-Song landet automatisch in "Songs, die dir gefallen" – ganz ohne App. Die Einrichtung dauert etwa 15 Minuten und ist kostenlos. Du brauchst dafür keine Programmierkenntnisse, nur Copy &amp; Paste.</p>
+
+  <div class="req-grid">
+    <div class="req"><strong>Spotify-Konto</strong>Kostenlos oder Premium, beides funktioniert</div>
+    <div class="req"><strong>GitHub-Konto</strong>Kostenlos, für das Hosting der Seite</div>
+    <div class="req"><strong>NFC-Schreib-App</strong>Z. B. "NFC Tools" (iOS/Android, kostenlos)</div>
+    <div class="req"><strong>15 Minuten</strong>Einmalige Einrichtung, danach läuft alles automatisch</div>
+  </div>
+
+  <section id="schritt1">
+    <h2><span class="step-num">1</span><span class="txt">Eigene Spotify-App anlegen</span></h2>
+    <p>Jeder Tag braucht eine eigene, kostenlose Spotify-Entwickler-App – das ist eine reine Formalität und dauert 2 Minuten.</p>
+    <ol class="substeps">
+      <li>Geh auf <code>developer.spotify.com/dashboard</code> und logg dich mit deinem Spotify-Konto ein.</li>
+      <li>Klick auf <strong>"Create app"</strong>.</li>
+      <li>Name und Beschreibung sind frei wählbar, z. B. "Mein NFC Song-Tag".</li>
+      <li>Bei <strong>Redirect URI</strong> trägst du erstmal irgendetwas ein, z. B. <code>https://example.com</code> – das korrigierst du in Schritt 4, sobald du deine echte Adresse kennst.</li>
+      <li>Bei <strong>"Which API/SDKs are you planning to use?"</strong> nur <strong>Web API</strong> ankreuzen.</li>
+      <li>Speichern. Auf der folgenden Seite siehst du deine <strong>Client ID</strong> – die brauchst du gleich in Schritt 3.</li>
+    </ol>
+    <div class="note">Spotify erlaubt aktuell maximal 5 Personen pro App (im sogenannten "Development Mode"). Da hier aber jeder seine eigene App anlegt, betrifft dich das nicht – deine App bedient nur dich selbst.</div>
+  </section>
+
+  <section id="schritt2">
+    <h2><span class="step-num">2</span><span class="txt">GitHub-Repository erstellen</span></h2>
+    <p>Die Seite muss irgendwo im Internet erreichbar sein. GitHub Pages hostet sie kostenlos.</p>
+    <ol class="substeps">
+      <li>Konto auf <code>github.com</code> erstellen (falls noch nicht vorhanden).</li>
+      <li>Oben rechts auf <strong>"+"</strong> → <strong>"New repository"</strong>.</li>
+      <li>Einen Namen vergeben, z. B. <code>mein-song-tag</code>. Sichtbarkeit auf <strong>Public</strong> lassen.</li>
+      <li>Auf <strong>"Create repository"</strong> klicken.</li>
+    </ol>
+  </section>
+
+  <section id="schritt3">
+    <h2><span class="step-num">3</span><span class="txt">Vorlage herunterladen und Client ID eintragen</span></h2>
+    <p>Lad dir die fertige Vorlagen-Datei herunter und trag dort deine eigene Client ID aus Schritt 1 ein.</p>
+
+    <div class="download-card">
+      <div>
+        <div class="label">index.html (Vorlage)</div>
+        <div class="sub">Fertiger Code, bereit zum Anpassen</div>
+      </div>
+      <a class="btn" href="TEMPLATE_RAW_URL" download>Herunterladen ↓</a>
+    </div>
+
+    <ol class="substeps">
+      <li>Die heruntergeladene Datei mit einem einfachen Texteditor öffnen.</li>
+      <li>Die Zeile mit <code>DEINE_SPOTIFY_CLIENT_ID</code> suchen und durch deine eigene Client ID aus Schritt 1 ersetzen.</li>
+      <li>Datei als <strong>index.html</strong> speichern (Name muss exakt so lauten).</li>
+      <li>Im GitHub-Repository auf <strong>"Add file" → "Upload files"</strong> klicken, die Datei hochladen, mit <strong>"Commit changes"</strong> bestätigen.</li>
+    </ol>
+    <div class="note warn">Der Dateiname muss exakt <code>index.html</code> lauten (nicht <code>index_1.html</code> o. ä.), sonst findet GitHub Pages die Seite nicht automatisch.</div>
+  </section>
+
+  <section id="schritt4">
+    <h2><span class="step-num">4</span><span class="txt">GitHub Pages aktivieren</span></h2>
+    <ol class="substeps">
+      <li>Im Repository oben auf <strong>"Settings"</strong> klicken, dann links auf <strong>"Pages"</strong>.</li>
+      <li>Bei <strong>"Branch"</strong> <code>main</code> auswählen, Ordner auf <code>/ (root)</code> lassen, <strong>"Save"</strong> klicken.</li>
+      <li>Nach 1–2 Minuten erscheint oben eine grüne Meldung mit deiner fertigen Adresse, z. B. <code>https://deinname.github.io/mein-song-tag/</code>.</li>
+    </ol>
+    <p>Diese Adresse jetzt kopieren und im Spotify-Dashboard aus Schritt 1 unter <strong>"Redirect URIs"</strong> eintragen (die Platzhalter-Adresse von vorhin ersetzen). Speichern.</p>
+    <div class="note warn">Die Adresse muss in Spotify und in der Browserleiste zu 100 % identisch sein, inklusive Schrägstrich am Ende.</div>
+  </section>
+
+  <section id="schritt5">
+    <h2><span class="step-num">5</span><span class="txt">NFC-Tag beschreiben</span></h2>
+    <ol class="substeps">
+      <li>App <strong>"NFC Tools"</strong> installieren (App Store / Play Store).</li>
+      <li>Im Reiter <strong>"Write"</strong> → <strong>"Add a record"</strong> → <strong>"URL / URI"</strong> auswählen.</li>
+      <li>Deine Adresse aus Schritt 4 einfügen.</li>
+      <li>Auf <strong>"Write"</strong> tippen und das Handy an den NFC-Tag halten, bis die Bestätigung kommt.</li>
+    </ol>
+  </section>
+
+  <section id="schritt6">
+    <h2><span class="step-num">6</span><span class="txt">Einmalig verbinden</span></h2>
+    <p>Tag mit dem Handy scannen (am besten im normalen Browser, nicht über WhatsApp/Instagram-Vorschau). Auf <strong>"Mit Spotify verbinden"</strong> tippen und den Zugriff bestätigen. Das ist der einzige Klick, den es je braucht – jeder weitere Scan läuft komplett automatisch.</p>
+  </section>
+
+  <section id="faq">
+    <h2><span class="step-num">?</span><span class="txt">Problemlösung</span></h2>
+
+    <details>
+      <summary>"Etwas ist schiefgelaufen" mit Status 403 beim Speichern</summary>
+      <p>Das war ein alter, inzwischen von Spotify abgeschalteter Endpunkt. In der aktuellen Vorlagen-Datei ist das bereits korrigiert – lad dir bei Problemen einfach die neueste Version über den Button oben erneut herunter.</p>
+    </details>
+
+    <details>
+      <summary>Die Seite zeigt 404 / "Seite nicht gefunden"</summary>
+      <p>Meist ist GitHub Pages noch nicht fertig aktiviert oder braucht noch 1–2 Minuten. Prüfe außerdem, dass die Datei wirklich <code>index.html</code> heißt und direkt im Hauptverzeichnis liegt.</p>
+    </details>
+
+    <details>
+      <summary>Fehler beim Verbinden, obwohl alles richtig eingetragen ist</summary>
+      <p>Öffne die Adresse direkt in Safari/Chrome, nicht über die Vorschau einer anderen App (WhatsApp, Instagram etc.) – diese eingebauten Browser blockieren manchmal den nötigen Zwischenspeicher.</p>
+    </details>
+
+    <details>
+      <summary>"Gerade läuft kein Song", obwohl Musik läuft</summary>
+      <p>Prüfe in der Spotify-App unter Einstellungen, ob "Private Sitzung" aktiviert ist – das versteckt absichtlich, was gerade läuft. Außerdem muss der Song auf demselben Konto laufen, mit dem die Seite verbunden ist.</p>
+    </details>
+
+    <details>
+      <summary>Ich will die Verbindung zurücksetzen oder ein anderes Konto benutzen</summary>
+      <p>Rufe deine Adresse mit angehängtem <code>?reset=1</code> auf, z. B. <code>https://deinname.github.io/mein-song-tag/?reset=1</code>. Das löscht die gespeicherte Verbindung und zeigt wieder den "Verbinden"-Button.</p>
+    </details>
+  </section>
+
+  <footer>
+    Diese Anleitung gehört zum 3D-Druck-Projekt "NFC Song-Tag". Jede Einrichtung läuft über dein eigenes, kostenloses Spotify- und GitHub-Konto.
+  </footer>
+
+</div>
+</body>
+</html>
